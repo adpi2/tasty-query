@@ -67,7 +67,7 @@ class PickleReader {
       assert(entries(i) == null, entries(i))
       entries(i) = res
       res
-    } else tOpt
+    } else tOpt.asInstanceOf[T]
   }
 
   def readNameRef()(using PklStream, Entries, Index): Name = at(pkl.readNat())(readName())
