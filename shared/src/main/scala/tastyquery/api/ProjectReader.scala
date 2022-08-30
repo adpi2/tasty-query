@@ -10,9 +10,9 @@ class ProjectReader {
     val trees = classes.flatMap { className =>
       val trees =
         for
-          cls <- ctx.getClassIfDefined(className).toOption
-          if ctx.classloader.scanClass(cls)
-          tasty <- ctx.classloader.topLevelTasty(cls)
+          root <- ctx.getRootIfDefined(className).toOption
+          sym <- ctx.rootSymbols(root).headOption
+          tasty <- ctx.classloader.topLevelTasty(sym)
         yield tasty
 
       trees.getOrElse {

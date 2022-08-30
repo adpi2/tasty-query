@@ -28,7 +28,7 @@ object Descriptors:
 
   private def classRef(binaryName: String)(using Context): Type =
     val className = binaryName.replace('/', '.').nn
-    ctx.getClassIfDefined(className) match
+    ctx.getClassFromBinaryName(className) match
       case Right(ref) =>
         val tpe = ref.accessibleThisType
         val rawArgs = rawTypeArguments(ref)

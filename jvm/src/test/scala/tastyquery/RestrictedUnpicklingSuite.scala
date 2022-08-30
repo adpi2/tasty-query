@@ -1,7 +1,7 @@
 package tastyquery
 
 import tastyquery.Contexts.Context
-import tastyquery.ast.Symbols.ClassSymbol
+import tastyquery.ast.Trees.Tree
 import tastyquery.ast.Types.SymResolutionProblem
 
 import Paths.*
@@ -12,14 +12,19 @@ abstract class RestrictedUnpicklingSuite extends BaseUnpicklingSuite {
   def getUnpicklingContext(path: TopLevelDeclPath, extraClasspath: TopLevelDeclPath*): Context =
     initRestrictedContext(path, extraClasspath)
 
-  protected def findTopLevelClass(path: TopLevelDeclPath)(extras: TopLevelDeclPath*): (Context, ClassSymbol) = {
+  protected def findTopLevelTasty(path: TopLevelDeclPath)(extras: TopLevelDeclPath*): (Context, Tree) = {
     val base = initRestrictedContext(path, extras)
     val topLevelClass = path.rootClassName
-    val classRoot = base.getClassIfDefined(topLevelClass) match
-      case Right(cls) => cls
-      case Left(err)  => throw MissingTopLevelDecl(path, err)
-    if !base.classloader.scanClass(classRoot)(using base) then fail(s"could not initialise $topLevelClass, $classRoot")
-    (base, classRoot)
+    val root = base.getRootIfDefined(topLevelClass) match
+      case Right(root) => root
+      case Left(err)   => throw MissingTopLevelDecl(path, err)
+    val rootSym = base.rootSymbols(root) match
+      case rootSym :: _ => rootSym
+      case _            => fail(s"Missing class for ${root.fullName}")
+    val tree = base.classloader.topLevelTasty(rootSym)(using base) match
+      case Some(trees) => trees.head
+      case _           => fail(s"Missing tasty for ${root.fullName}, but resolved root $rootSym")
+    (base, tree)
   }
 
   private def initRestrictedContext(path: TopLevelDeclPath, extras: Seq[TopLevelDeclPath]): Context =
