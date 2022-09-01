@@ -62,6 +62,10 @@ object Contexts {
     private[tastyquery] def existsRoot(binaryName: String): Boolean =
       getRootIfDefined(binaryName).isRight
 
+    /** Does there possibly exist a root for the given binary name. Does not force any classes covered by the name */
+    private[tastyquery] def existsRoot(binaryName: String): Boolean =
+      getRootIfDefined(binaryName).isRight
+
     /** Force a root to discover any top level symbols covered by the root. */
     private[tastyquery] def rootSymbolsIfDefined(binaryName: String): List[Symbol] =
       getRootIfDefined(binaryName) match
