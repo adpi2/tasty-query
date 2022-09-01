@@ -59,14 +59,21 @@ object Contexts {
             .toRight(SymbolLookupException(root.fullName, s"perhaps it is not on the classpath"))
         case Left(err) => Left(err)
 
+    /** Does there possibly exist a root for the given binary name. Does not force any classes covered by the name */
+    private[tastyquery] def existsRoot(binaryName: String): Boolean =
+      getRootIfDefined(binaryName).isRight
+
     /** Force a root to discover any top level symbols covered by the root. */
-    private[tastyquery] def rootSymbols(root: Loader.Root): List[Symbol] =
-      root.pkg.getDecl(root.rootName.toTypeName).toList // class value
-        ++ root.pkg.getDecl(root.rootName).toList // module value
-        ++ root.pkg.getDecl(root.rootName.withObjectSuffix.toTypeName).toList // module class value
+    private[tastyquery] def rootSymbolsIfDefined(binaryName: String): List[Symbol] =
+      getRootIfDefined(binaryName) match
+        case Right(root) =>
+          root.pkg.getDecl(root.rootName.toTypeName).toList // class value
+            ++ root.pkg.getDecl(root.rootName).toList // module value
+            ++ root.pkg.getDecl(root.rootName.withObjectSuffix.toTypeName).toList // module class value
+        case Left(_) => Nil
 
     /** Returns a root if there exists one on the classpath, does not force the underlying root symbols */
-    private[tastyquery] def getRootIfDefined(binaryName: String): Either[SymResolutionProblem, Loader.Root] =
+    private def getRootIfDefined(binaryName: String): Either[SymResolutionProblem, Loader.Root] =
       val (packageName, rootName) =
         val lastSep = binaryName.lastIndexOf('.')
         if lastSep == -1 then

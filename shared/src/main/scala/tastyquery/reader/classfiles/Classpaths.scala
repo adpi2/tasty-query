@@ -73,7 +73,7 @@ object Classpaths {
   }
 
   object Loader:
-    case class Root private[Classpaths] (pkg: PackageClassSymbol, rootName: SimpleName):
+    private[tastyquery] case class Root private[Classpaths] (pkg: PackageClassSymbol, rootName: SimpleName):
       def packages: IterableOnce[PackageClassSymbol] =
         (pkg #:: LazyList.from(pkg.enclosingDecls)).asInstanceOf[IterableOnce[PackageClassSymbol]]
 

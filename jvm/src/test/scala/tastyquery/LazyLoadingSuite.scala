@@ -73,9 +73,8 @@ class LazyLoadingSuite extends RestrictedUnpicklingSuite {
     // ignore because this passes only on clean builds
 
     def failingGetTopLevelClass(path: TopLevelDeclPath)(using Context): Nothing =
-      ctx.getRootIfDefined(path.rootClassName) match
-        case Right(classRoot) => fail(s"expected no class, but got ${classRoot.fullName}")
-        case Left(err)        => throw MissingTopLevelDecl(path, err)
+      if ctx.existsRoot(path.rootClassName) then fail(s"expected no class, but got ${path.rootClassName}")
+      else throw MissingTopLevelDecl(path, SymbolLookupException(path.name))
 
     def forceTopLevel(path: TopLevelDeclPath)(using Context): Unit =
       try
