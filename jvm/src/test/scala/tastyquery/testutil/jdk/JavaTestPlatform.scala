@@ -20,7 +20,14 @@ object JavaTestPlatform extends TestPlatform {
 
   def loadClasspath(): Classpath = {
     val kinds = Set(ClasspathLoaders.FileKind.Tasty, ClasspathLoaders.FileKind.Class)
-    val parts = resourcesDir :: stdLibPaths
+    val javaHome = Paths.get(Properties.javaHome).toOption
+    val rtJar = javaHome.flatMap(_.resolve("lib/rt.jar").toOption).filter(Files.exists(_)).map(_.toString)
+    val parts = resourcesDir :: rtJar.toList ::: stdLibPaths
     ClasspathLoaders.read(parts, kinds)
   }
+
+  extension [T] (nullable: T | Null)
+    def toOption: Option[T] = nullable match
+      case null => None
+      case value => Some(value.asInstanceOf[T])
 }

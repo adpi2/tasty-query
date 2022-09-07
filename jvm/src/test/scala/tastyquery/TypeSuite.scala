@@ -670,4 +670,9 @@ class TypeSuite extends UnrestrictedUnpicklingSuite {
     println(Console.getDecl(name"outVar").get.declaredType)
   }
 
+  testWithContext("scala.runtime") {
+    // val BooleanRef = resolve(name"scala" / name"runtime" / tname"BooleanRef").asClass
+    val scalaRuntime = resolve(name"scala" / name"runtime").asInstanceOf[DeclaringSymbol]
+    scalaRuntime.declarations
+  }
 }
