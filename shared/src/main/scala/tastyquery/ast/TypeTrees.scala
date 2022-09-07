@@ -54,7 +54,7 @@ object TypeTrees {
 
   case class RefinedTypeTree(underlying: TypeTree, refinements: List[Tree])(span: Span) extends TypeTree(span) {
     override protected def calculateType(using Context): Type =
-      throw new TypeTreeToTypeError(this) // TODO
+      NothingType // TODO
 
     override final def withSpan(span: Span): RefinedTypeTree = RefinedTypeTree(underlying, refinements)(span)
   }
