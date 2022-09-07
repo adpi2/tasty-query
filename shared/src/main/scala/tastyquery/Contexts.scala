@@ -211,17 +211,15 @@ object Contexts {
     def classRoot: ClassSymbol =
       val name = root.rootName.toTypeName
       root.pkg
-        .getDecl(name)
-        .collect { case cls: ClassSymbol =>
-          cls
-        }
+        .getDeclInternal(name)
+        .collect { case cls: ClassSymbol => cls }
         .getOrElse(createClassSymbol(name, root.pkg).useWith(root.pkg.addDecl))
 
     /** The module class root of this Context, will create and enter the symbol if it does not exist yet. */
     def moduleClassRoot: ClassSymbol =
       val name = root.rootName.withObjectSuffix.toTypeName
       root.pkg
-        .getDecl(name)
+        .getDeclInternal(name)
         .collect { case modcls: ClassSymbol =>
           modcls
         }
@@ -231,7 +229,7 @@ object Contexts {
     def moduleRoot: RegularSymbol =
       val name = root.rootName
       root.pkg
-        .getDecl(name)
+        .getDeclInternal(name)
         .collect { case mod: RegularSymbol =>
           mod
         }
