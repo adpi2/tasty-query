@@ -203,8 +203,14 @@ class PickleReader {
         val cls =
           if isClassRoot then clsCtx.classRoot
           else if isModuleClassRoot then clsCtx.moduleClassRoot
-          else ClassSymbolFactory.createSymbol(name.toTypeName, owner) // TODO Read inner members
-        //cls.withDeclaredType(ClassType(cls, ObjectType))
+          else
+            val sym = ClassSymbolFactory.createSymbol(name.toTypeName, owner) // TODO Read inner members
+            if name.toTypeName.wrapsObjectName then
+              val module = owner
+                .asInstanceOf[DeclaringSymbol]
+                .getDeclInternal(name.toTermName.stripObjectSuffix)
+              module.foreach(m => m.withDeclaredType(sym.typRef))
+            sym
         // the same class can be found twice in the symbol table
         if cls.initialised then return cls
         cls.initialised = true
@@ -215,12 +221,20 @@ class PickleReader {
         val tpe = readSymType()
         sym.withDeclaredType(tpe)
       case MODULEsym =>
-        if isModuleRoot then clsCtx.moduleRoot
-        else RegularSymbolFactory.createSymbol(name.toTermName, owner) // TODO Assign type to companion module class
+        if isModuleRoot then clsCtx.moduleRoot.withDeclaredType(clsCtx.moduleClassRoot.typeRef)
+        else
+          val moduleClass = owner
+            .asInstanceOf[DeclaringSymbol]
+            .getDeclInternal(name.toTermName.withObjectSuffix.toTypeName)
+          val sym =
+            RegularSymbolFactory.createSymbol(name.toTermName, owner) // TODO Assign type to companion module class
+          moduleClass.foreach(cls => sym.withDeclaredType(cls.typeRef))
+          sym
       case _ =>
         errorBadSignature("bad symbol tag: " + tag)
     })
-    sym.withFlags(flags)
+    sym
+      .withFlags(flags)
       .withPrivateWithin(privateWithin)
   }
 
@@ -236,8 +250,7 @@ class PickleReader {
     if pickleFlags.isFinal then flags |= Final
     if pickleFlags.isMethod then flags |= Method
     if pickleFlags.isInterface then flags |= NoInitsInterface
-    if pickleFlags.isModule then
-      flags |= (if isType then Module else Module | Lazy)
+    if pickleFlags.isModule then flags |= (if isType then Module else Module | Lazy)
     if pickleFlags.isImplicit then flags |= Implicit
     if pickleFlags.isSealed then flags |= Sealed
     if pickleFlags.isCase then flags |= Case
@@ -273,7 +286,7 @@ class PickleReader {
     if pickleFlags.isEnum then flags |= Enum
 
     flags
-  } 
+  }
 
   def missingSymbolEntry(index: Int)(using PklStream, Entries, Index): Boolean =
     missingEntry(index) && isSymbolEntry(index)
