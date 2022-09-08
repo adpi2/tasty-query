@@ -110,7 +110,7 @@ object Symbols {
         myPrivateWithin = Some(privateWithin)
         this
 
-    private[tastyquery] def signature(using Context): Option[Signature]
+    def signature(using Context): Option[Signature]
 
     /** If this symbol has a `MethodicType`, returns a `SignedName`, otherwise a `Name`. */
     final def signedName(using Context): Name =
@@ -238,7 +238,7 @@ object Symbols {
         companionClass.foreach(_.ensureInitialised()) // init the root class
       else () // member symbol, should be initialised by owner
 
-    private[tastyquery] override final def signature(using Context): Option[Signature] =
+    override final def signature(using Context): Option[Signature] =
       val local = mySignature
       if local != null then local
       else
@@ -252,7 +252,7 @@ object Symbols {
   sealed abstract class DeclaringSymbol private[Symbols] (override val name: Name, rawowner: Symbol | Null)
       extends Symbol(name, rawowner) {
 
-    private[tastyquery] override final def signature(using Context): Option[Signature] = None
+    override final def signature(using Context): Option[Signature] = None
 
     /* A map from the name of a declaration directly inside this symbol to the corresponding symbol
      * The qualifiers on the name are not dropped. For instance, the package names are always fully qualified. */
